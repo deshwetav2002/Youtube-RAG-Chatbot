@@ -10,3 +10,4 @@ python-dotenv
 tiktoken
 google-api-python-client
 youtube-transcript-api
+torchvision
