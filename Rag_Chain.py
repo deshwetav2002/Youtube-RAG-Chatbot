@@ -66,7 +66,7 @@ def load_transcript(youtube_url: str, youtube_api_key: str) -> list:
     )
 
     # Merge all transcript segments into one text block
-    full_text = " ".join(entry["text"] for entry in transcript_list)
+    full_text = " ".join(entry.text for entry in transcript_list)
 
     # Wrap in a LangChain Document with metadata
     doc = Document(
