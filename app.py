@@ -2,7 +2,7 @@ import os
 import streamlit as st
 from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, AIMessage
-from Rag_chain import process_youtube_url, ask_question
+from Rag_Chain import process_youtube_url, ask_question
 
 load_dotenv()
 
