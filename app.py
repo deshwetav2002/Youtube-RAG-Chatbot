@@ -38,7 +38,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ── Sidebar ───────────────────────────────────────────────────────────────────
+# Sidebar
 with st.sidebar:
     st.markdown("## 🎬 YouTube RAG Chatbot")
     st.markdown("---")
@@ -81,7 +81,7 @@ with st.sidebar:
         st.session_state.video_meta   = {}
         st.rerun()
 
-# ── Session state ─────────────────────────────────────────────────────────────
+#  Session state 
 for key, default in [
     ("messages", []),
     ("lc_history", []),
@@ -91,7 +91,7 @@ for key, default in [
     if key not in st.session_state:
         st.session_state[key] = default
 
-# ── Load video ────────────────────────────────────────────────────────────────
+#  Load video 
 if load_btn:
     if not hf_token:
         st.error("Please enter your HuggingFace API token.")
@@ -111,7 +111,7 @@ if load_btn:
             except Exception as e:
                 st.error(f"❌ Error: {e}")
 
-# ── Header ────────────────────────────────────────────────────────────────────
+#  Header
 st.title("YouTube RAG Chatbot 🎬")
 st.markdown("Powered by **DeepSeek-R1** (HuggingFace) · **FAISS** · **LangChain LCEL**")
 
@@ -125,7 +125,7 @@ if st.session_state.video_meta:
     )
     st.markdown("")
 
-# ── Chat history ──────────────────────────────────────────────────────────────
+#  Chat history
 for msg in st.session_state.messages:
     if msg["role"] == "user":
         st.markdown(f'<div class="user-bubble">🧑 {msg["content"]}</div>', unsafe_allow_html=True)
@@ -140,7 +140,7 @@ for msg in st.session_state.messages:
                         unsafe_allow_html=True,
                     )
 
-# ── Chat input ────────────────────────────────────────────────────────────────
+#  Chat input 
 if st.session_state.chain_bundle:
     user_input = st.chat_input("Ask a question about the video…")
     if user_input:
