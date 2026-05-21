@@ -1,8 +1,3 @@
-"""
-app.py — Streamlit UI for YouTube RAG Chatbot (HuggingFace version)
-Run with:  streamlit run app.py
-"""
-
 import os
 import streamlit as st
 from dotenv import load_dotenv
@@ -61,6 +56,13 @@ with st.sidebar:
         help="Get your token at huggingface.co/settings/tokens",
     )
 
+    yt_api_key = st.text_input(
+        "▶️ YouTube Data API Key",
+        value=os.getenv("YOUTUBE_API_KEY", ""),
+        type="password",
+        placeholder="AIza...",
+    )
+
     st.markdown("### 📹 YouTube URL")
     youtube_url = st.text_input(
         "Paste a YouTube video URL",
@@ -99,6 +101,8 @@ for key, default in [
 if load_btn:
     if not hf_token:
         st.error("Please enter your HuggingFace API token in the sidebar.")
+    elif not yt_api_key:
+        st.error("Please enter your YouTube Data API key.")
     elif not youtube_url:
         st.error("Please paste a YouTube URL.")
     else:
