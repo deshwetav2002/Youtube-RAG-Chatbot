@@ -9,6 +9,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.documents import Document
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -57,8 +58,9 @@ def load_transcript(youtube_url: str, youtube_api_key: str) -> list:
     title   = snippet.get("title", "Unknown Title")
     author  = snippet.get("channelTitle", "Unknown Channel")
 
-    # ── Fetch transcript text ─────────────────────────────────────────────────
-    transcript_list = YouTubeTranscriptApi.get_transcript(
+    # ── Fetch transcript text 
+    api = YouTubeTranscriptApi()
+    transcript_list = api.fetch(
         video_id,
         languages=["en", "en-US"]
     )
