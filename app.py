@@ -2,11 +2,11 @@ import os
 import streamlit as st
 from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, AIMessage
-from Rag_Chain import process_youtube_url, ask_question
+from Rag_chain import process_youtube_url, ask_question
 
 load_dotenv()
 
-st.set_page_config(page_title="YouTube RAG Chatbot", page_icon="▶️", layout="wide")
+st.set_page_config(page_title="YouTube RAG Chatbot", page_icon="🎬", layout="wide")
 
 st.markdown("""
 <style>
@@ -34,10 +34,6 @@ st.markdown("""
         border-radius: 10px; color: #ccc;
         font-size: 0.85rem; border-left: 4px solid #f5a623;
     }
-    .hf-badge {
-        background: #f5a623; color: #000; font-size: 0.7rem;
-        padding: 2px 8px; border-radius: 10px; font-weight: bold;
-    }
     h1 {color: #f5a623 !important;}
 </style>
 """, unsafe_allow_html=True)
@@ -45,15 +41,13 @@ st.markdown("""
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("## 🎬 YouTube RAG Chatbot")
-    st.markdown('<span class="hf-badge">🤗 HuggingFace</span>', unsafe_allow_html=True)
     st.markdown("---")
 
     hf_token = st.text_input(
-        "🔑 HuggingFace API Token",
+        "🤗 HuggingFace API Token",
         value=os.getenv("HUGGINGFACEHUB_API_TOKEN", ""),
         type="password",
         placeholder="hf_...",
-        help="Get your token at huggingface.co/settings/tokens",
     )
 
     yt_api_key = st.text_input(
@@ -74,17 +68,17 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("**Stack:**")
     st.markdown("""
-- 🧠 **LLM:** deepseek-ai/DeepSeek-V4-Pro (HF Inference API)  
-- 📐 **Embeddings:** all-MiniLM-L6-v2 *(local)*  
-- 🗄️ **Vector Store:** FAISS  
-- 🔗 **Framework:** LangChain LCEL  
+- 🧠 **LLM:** DeepSeek-R1 (HF Inference API)
+- 📐 **Embeddings:** all-MiniLM-L6-v2 *(local)*
+- 🗄️ **Vector Store:** FAISS
+- 🔗 **Framework:** LangChain LCEL
     """)
 
     if st.button("🗑️ Clear Chat", use_container_width=True):
-        st.session_state.messages    = []
-        st.session_state.lc_history  = []
+        st.session_state.messages     = []
+        st.session_state.lc_history   = []
         st.session_state.chain_bundle = None
-        st.session_state.video_meta  = {}
+        st.session_state.video_meta   = {}
         st.rerun()
 
 # ── Session state ─────────────────────────────────────────────────────────────
@@ -100,15 +94,15 @@ for key, default in [
 # ── Load video ────────────────────────────────────────────────────────────────
 if load_btn:
     if not hf_token:
-        st.error("Please enter your HuggingFace API token in the sidebar.")
+        st.error("Please enter your HuggingFace API token.")
     elif not yt_api_key:
         st.error("Please enter your YouTube Data API key.")
     elif not youtube_url:
         st.error("Please paste a YouTube URL.")
     else:
-        with st.spinner("📥 Fetching transcript & building FAISS index…"):
+        with st.spinner("📥 Fetching transcript via YouTube API & building index…"):
             try:
-                bundle, meta = process_youtube_url(youtube_url, hf_token)
+                bundle, meta = process_youtube_url(youtube_url, hf_token, yt_api_key)
                 st.session_state.chain_bundle = bundle
                 st.session_state.video_meta   = meta
                 st.session_state.messages     = []
@@ -118,8 +112,8 @@ if load_btn:
                 st.error(f"❌ Error: {e}")
 
 # ── Header ────────────────────────────────────────────────────────────────────
-st.title("YouTube RAG Chatbot ▶️")
-st.markdown("Powered by **Deepseek** (HuggingFace) · **FAISS** · **LangChain LCEL**")
+st.title("YouTube RAG Chatbot 🎬")
+st.markdown("Powered by **DeepSeek-R1** (HuggingFace) · **FAISS** · **LangChain LCEL**")
 
 if st.session_state.video_meta:
     meta   = st.session_state.video_meta
@@ -131,7 +125,7 @@ if st.session_state.video_meta:
     )
     st.markdown("")
 
-# ── Chat history display ──────────────────────────────────────────────────────
+# ── Chat history ──────────────────────────────────────────────────────────────
 for msg in st.session_state.messages:
     if msg["role"] == "user":
         st.markdown(f'<div class="user-bubble">🧑 {msg["content"]}</div>', unsafe_allow_html=True)
@@ -152,7 +146,7 @@ if st.session_state.chain_bundle:
     if user_input:
         st.session_state.messages.append({"role": "user", "content": user_input})
 
-        with st.spinner("🤗 Deepseek is thinking…"):
+        with st.spinner("🤗 Thinking…"):
             try:
                 result = ask_question(
                     chain_bundle=st.session_state.chain_bundle,
@@ -161,10 +155,8 @@ if st.session_state.chain_bundle:
                 )
                 answer  = result["answer"]
                 sources = result["source_documents"]
-
                 st.session_state.lc_history.append(HumanMessage(content=user_input))
                 st.session_state.lc_history.append(AIMessage(content=answer))
-
             except Exception as e:
                 answer  = f"Error: {e}"
                 sources = []
@@ -176,4 +168,4 @@ if st.session_state.chain_bundle:
         })
         st.rerun()
 else:
-    st.info("👆 Enter your HuggingFace token and a YouTube URL in the sidebar to begin.")
+    st.info("👆 Enter your API keys and a YouTube URL in the sidebar to begin.")
