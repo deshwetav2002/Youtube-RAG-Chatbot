@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-# ── Helper: extract video ID from any YouTube URL format ─────────────────────
+#  Helper: extract video ID from any YouTube URL format 
 def extract_video_id(youtube_url: str) -> str:
     """
     Handles all common YouTube URL formats:
@@ -35,7 +35,7 @@ def extract_video_id(youtube_url: str) -> str:
     raise ValueError(f"Could not extract video ID from URL: {youtube_url}")
 
 
-# ── 1. Load transcript using YouTube Data API v3 ─────────────────────────────
+# 1. Load transcript using YouTube Data API v3
 def load_transcript(youtube_url: str, youtube_api_key: str) -> list:
     """
     Uses YouTube Data API v3 to fetch video metadata (title, author),
@@ -44,7 +44,7 @@ def load_transcript(youtube_url: str, youtube_api_key: str) -> list:
     """
     video_id = extract_video_id(youtube_url)
 
-    # ── Fetch metadata via official Google API (not blocked by YouTube) ──────
+    # Fetch metadata via official Google API (not blocked by YouTube) 
     yt_service = build("youtube", "v3", developerKey=youtube_api_key)
     response = yt_service.videos().list(
         part="snippet",
@@ -58,7 +58,7 @@ def load_transcript(youtube_url: str, youtube_api_key: str) -> list:
     title   = snippet.get("title", "Unknown Title")
     author  = snippet.get("channelTitle", "Unknown Channel")
 
-    # ── Fetch transcript text 
+    # Fetch transcript text 
     api = YouTubeTranscriptApi()
     transcript_list = api.fetch(
         video_id,
@@ -81,7 +81,7 @@ def load_transcript(youtube_url: str, youtube_api_key: str) -> list:
     return [doc]
 
 
-# ── 2. Chunk the transcript ───────────────────────────────────────────────────
+# 2. Chunk the transcript 
 def chunk_documents(docs: list, chunk_size: int = 1000, chunk_overlap: int = 150) -> list:
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size,
@@ -90,7 +90,7 @@ def chunk_documents(docs: list, chunk_size: int = 1000, chunk_overlap: int = 150
     return splitter.split_documents(docs)
 
 
-# ── 3. Build FAISS vector store ───────────────────────────────────────────────
+# 3. Build FAISS vector store 
 def build_vectorstore(chunks: list) -> FAISS:
     embedding = HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-MiniLM-L6-v2",
@@ -100,12 +100,12 @@ def build_vectorstore(chunks: list) -> FAISS:
     return FAISS.from_documents(chunks, embedding)
 
 
-# ── 4. Format retrieved docs into a single string ────────────────────────────
+# 4. Format retrieved docs into a single string 
 def format_docs(docs: list) -> str:
     return "\n\n".join(doc.page_content for doc in docs)
 
 
-# ── 5. Format chat history as plain text ─────────────────────────────────────
+# 5. Format chat history as plain text 
 def format_history(chat_history: list) -> str:
     if not chat_history:
         return ""
@@ -118,7 +118,7 @@ def format_history(chat_history: list) -> str:
     return "\n".join(lines)
 
 
-# ── 6. Build LCEL RAG chain ───────────────────────────────────────────────────
+# 6. Build LCEL RAG chain 
 def build_rag_chain(vectorstore: FAISS, hf_api_token: str):
     retriever = vectorstore.as_retriever(
         search_type="similarity",
@@ -171,7 +171,7 @@ def build_rag_chain(vectorstore: FAISS, hf_api_token: str):
     }
 
 
-# ── 7. Ask a question ─────────────────────────────────────────────────────────
+#  7. Ask a question 
 def ask_question(chain_bundle: dict, question: str, chat_history: list) -> dict:
     condense_chain = chain_bundle["condense_chain"]
     rag_chain      = chain_bundle["rag_chain"]
@@ -197,7 +197,7 @@ def ask_question(chain_bundle: dict, question: str, chat_history: list) -> dict:
     return {"answer": answer.strip(), "source_documents": source_docs}
 
 
-# ── 8. One-shot convenience function ─────────────────────────────────────────
+# 8. One-shot convenience function 
 def process_youtube_url(youtube_url: str, hf_api_token: str, youtube_api_key: str) -> tuple:
     docs         = load_transcript(youtube_url, youtube_api_key)
     chunks       = chunk_documents(docs)
